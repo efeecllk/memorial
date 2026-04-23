@@ -1,0 +1,163 @@
+# Polyglot-Attest hospital workstation stack.
+#
+# Topology:
+#   doctor browser
+#       │ HTTP
+#       ▼
+#   ┌───────────────┐
+#   │   gateway     │  FastAPI · loads Whisper + ModernBERT in-process
+#   │  (Python 3.11)│  signs + submits attestations to Monad
+#   └───────┬───────┘
+#           │ HTTP (OpenAI-compatible)
+#           ├──────► vllm-medgemma   (MedGemma-4B + 6 medvision LoRAs)
+#           ├──────► vllm-reasoning  (DeepSeek-R1-Distill-Qwen-7B)
+#           └──────► vllm-aggregator (Meerkat-7B)
+#
+# All four services share one GPU. VRAM budget on RTX 4090 24 GB:
+#   ~ 4 GB  vllm-medgemma  (base + LoRAs Q4)
+#   ~ 4.5 GB vllm-reasoning (Q4)
+#   ~ 4.5 GB vllm-aggregator (Q4)
+#   ~ 1.6 GB whisper (in gateway process)
+#   ~ 0.3 GB modernbert (in gateway process)
+#   ~ 6 GB  paged KV cache pool
+#   ~ 1 GB  driver / CUDA overhead
+#   ─────────────────────────────────────
+#     ~ 22 GB total → fits with headroom
+#
+# Bring the stack up:    docker compose up -d
+# Logs:                  docker compose logs -f gateway
+# Tear down:             docker compose down
+
+services:
+  gateway:
+    build: ./gateway
+    container_name: polyglot-gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./gateway/.env
+    depends_on:
+      - vllm-medgemma
+      - vllm-reasoning
+      - vllm-aggregator
+    restart: unless-stopped
+    networks:
+      - polyglot
+
+  vllm-medgemma:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-medgemma
+    ports:
+      - "8001:8001"
+    environment:
+      - HF_HOME=/models/.cache
+    volumes:
+      - ./models:/models
+    command: >
+      --model google/medgemma-4b-it
+      --dtype float16
+      --enable-lora
+      --max-loras 8
+      --max-lora-rank 64
+      --lora-modules
+        abdominal_ct=/models/loras/abdominal-ct
+        musculoskeletal=/models/loras/musculoskeletal
+        chest_xray=/models/loras/chest-xray
+        retinal_oct=/models/loras/retinal-oct
+        brain_mri=/models/loras/brain-mri
+        dermatology=/models/loras/dermatology
+      --gpu-memory-utilization 0.30
+      --port 8001
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - polyglot
+
+  vllm-reasoning:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-reasoning
+    ports:
+      - "8002:8002"
+    environment:
+      - HF_HOME=/models/.cache
+    volumes:
+      - ./models:/models
+    command: >
+      --model deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+      --quantization awq
+      --gpu-memory-utilization 0.25
+      --max-model-len 16384
+      --port 8002
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - polyglot
+
+  vllm-aggregator:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-aggregator
+    ports:
+      - "8003:8003"
+    environment:
+      - HF_HOME=/models/.cache
+    volumes:
+      - ./models:/models
+    command: >
+      --model dmis-lab/Meerkat-7B
+      --quantization awq
+      --gpu-memory-utilization 0.25
+      --max-model-len 4096
+      --port 8003
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - polyglot
+
+  langfuse:
+    image: langfuse/langfuse:2
+    container_name: polyglot-langfuse
+    ports:
+      - "3001:3000"
+    environment:
+      - DATABASE_URL=postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      - NEXTAUTH_SECRET=mysecret
+      - SALT=mysalt
+      - NEXTAUTH_URL=http://localhost:3001
+    depends_on:
+      - langfuse-db
+    networks:
+      - polyglot
+
+  langfuse-db:
+    image: postgres:16
+    container_name: polyglot-langfuse-db
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=langfuse
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse-data:/var/lib/postgresql/data
+    networks:
+      - polyglot
+
+networks:
+  polyglot:
+    driver: bridge
+
+volumes:
+  langfuse-data:
