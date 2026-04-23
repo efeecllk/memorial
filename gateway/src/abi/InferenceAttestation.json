@@ -1,0 +1,83 @@
+[
+  {
+    "type": "function",
+    "name": "attest",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      { "name": "id", "type": "bytes32" },
+      {
+        "name": "ea",
+        "type": "tuple",
+        "components": [
+          { "name": "sttHash",             "type": "bytes32" },
+          { "name": "routerHash",          "type": "bytes32" },
+          { "name": "baseHash",            "type": "bytes32" },
+          { "name": "activeLoraHash",      "type": "bytes32" },
+          { "name": "reasoningHash",       "type": "bytes32" },
+          { "name": "aggregatorHash",      "type": "bytes32" },
+          { "name": "inputHash",           "type": "bytes32" },
+          { "name": "visionOutputHash",    "type": "bytes32" },
+          { "name": "reasoningOutputHash", "type": "bytes32" },
+          { "name": "finalOutputHash",     "type": "bytes32" },
+          { "name": "consentRef",          "type": "bytes32" },
+          { "name": "doctor",              "type": "address" },
+          { "name": "timestamp",           "type": "uint64"  }
+        ]
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "verify",
+    "stateMutability": "view",
+    "inputs": [
+      { "name": "id", "type": "bytes32" },
+      { "name": "expectedInputHash", "type": "bytes32" },
+      { "name": "expectedFinalOutputHash", "type": "bytes32" }
+    ],
+    "outputs": [{ "type": "bool" }]
+  },
+  {
+    "type": "function",
+    "name": "getAttestation",
+    "stateMutability": "view",
+    "inputs": [{ "name": "id", "type": "bytes32" }],
+    "outputs": [
+      {
+        "type": "tuple",
+        "components": [
+          { "name": "sttHash",             "type": "bytes32" },
+          { "name": "routerHash",          "type": "bytes32" },
+          { "name": "baseHash",            "type": "bytes32" },
+          { "name": "activeLoraHash",      "type": "bytes32" },
+          { "name": "reasoningHash",       "type": "bytes32" },
+          { "name": "aggregatorHash",      "type": "bytes32" },
+          { "name": "inputHash",           "type": "bytes32" },
+          { "name": "visionOutputHash",    "type": "bytes32" },
+          { "name": "reasoningOutputHash", "type": "bytes32" },
+          { "name": "finalOutputHash",     "type": "bytes32" },
+          { "name": "consentRef",          "type": "bytes32" },
+          { "name": "doctor",              "type": "address" },
+          { "name": "timestamp",           "type": "uint64"  }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Attested",
+    "inputs": [
+      { "name": "id",              "type": "bytes32", "indexed": true },
+      { "name": "doctor",          "type": "address", "indexed": true },
+      { "name": "activeLoraHash",  "type": "bytes32", "indexed": true },
+      { "name": "baseHash",        "type": "bytes32", "indexed": false },
+      { "name": "reasoningHash",   "type": "bytes32", "indexed": false },
+      { "name": "aggregatorHash",  "type": "bytes32", "indexed": false },
+      { "name": "inputHash",       "type": "bytes32", "indexed": false },
+      { "name": "finalOutputHash", "type": "bytes32", "indexed": false },
+      { "name": "consentRef",      "type": "bytes32", "indexed": false },
+      { "name": "timestamp",       "type": "uint64",  "indexed": false }
+    ]
+  }
+]
