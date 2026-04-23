@@ -1,0 +1,34 @@
+# Modal worker project — defense-in-depth .gitignore.
+
+# ── secrets + modal local state ──────────────────────────────────────────
+.env
+.env.*
+!.env.example
+!.env.sample
+.modal/
+.huggingface/
+
+# ── python ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ── virtualenv / uv ──────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── modal build / deploy artifacts ───────────────────────────────────────
+# Modal stores per-app metadata locally after deploy; nothing sensitive
+# by default, but keep it out of diffs.
+.modal-cache/
+*.modal-lock
+
+# ── OS / editor ──────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+*~
