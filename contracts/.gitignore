@@ -1,0 +1,42 @@
+# Foundry smart-contract workspace — defense-in-depth .gitignore.
+# Root /.gitignore already covers most of this; keep the duplication
+# so this subproject is safe in isolation.
+
+# ── secrets ──────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+*.keystore
+keystore/
+wallet.json
+
+# ── foundry output ───────────────────────────────────────────────────────
+out/
+cache/
+cache_forge/
+broadcast/
+# Preserve deployed-address snapshots if you explicitly place them:
+#   !broadcast/Deploy.s.sol/*/run-latest.json   # uncomment when you want to commit
+deployments/
+
+# ── dependencies (submoduled via forge install) ──────────────────────────
+lib/
+
+# ── build info / coverage ────────────────────────────────────────────────
+*.tsbuildinfo
+coverage/
+lcov.info
+
+# ── node (unused in contracts/, but defensive) ───────────────────────────
+node_modules/
+
+# ── docs output ──────────────────────────────────────────────────────────
+docs/
+
+# ── OS cruft ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
