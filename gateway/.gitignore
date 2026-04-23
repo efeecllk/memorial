@@ -1,0 +1,58 @@
+# Gateway (Python / FastAPI) — defense-in-depth .gitignore.
+
+# ── secrets ──────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+keystore/
+wallet.json
+
+# ── python virtual env + caches ──────────────────────────────────────────
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.eggs/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+
+# ── coverage / test ──────────────────────────────────────────────────────
+.coverage
+coverage.xml
+htmlcov/
+
+# ── build / dist ─────────────────────────────────────────────────────────
+build/
+dist/
+
+# ── local SQLite submission-queue DBs (if created) ───────────────────────
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+submission_queue.db
+
+# ── logs ─────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── ABIs copied from contracts/ build (regenerable) ──────────────────────
+# The abi/InferenceAttestation.json we author by hand is kept; auto-copied
+# ones from extract_abis.sh go into a different filename pattern.
+src/abi/*.generated.json
+
+# ── OS / editor ──────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+*~
