@@ -1,0 +1,1254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Polyglot·Attest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,500;1,9..144,700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* ══ project palette (matches hospital-mockup tailwind.config) ══ */
+  :root {
+    --bone:      #F4F1EA;
+    --cream:     #ECE7DB;
+    --paper-3:   #E4DECB;
+    --ink:       #14110D;
+    --ink-soft:  #423A2E;
+    --smoke:     #6E665B;
+    --rule:      #C8BCA0;
+    --rule-soft: #DDD3BB;
+
+    --blood:     #7A1F1F;
+    --blood-hi:  #962F2F;
+    --blood-wash:#F4DCDA;
+    --ocean:     #1F4250;
+    --ocean-hi:  #3B4F7C;
+    --ocean-wash:#E1EEF2;
+    --ochre:     #9C7A2F;
+    --ochre-hi:  #B8862B;
+    --ochre-wash:#F5EBD2;
+    --moss:      #4A5C3A;
+    --moss-hi:   #4F7338;
+    --moss-wash: #E8F0E5;
+
+    /* Monad brand — kept for chain-specific elements only */
+    --monad:     #836EF9;
+    --monad-hi:  #CBBFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+  body {
+    background: var(--bone);
+    color: var(--ink);
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 15.5px; line-height: 1.5;
+    word-spacing: 0.05em;
+    letter-spacing: 0.005em;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* aged-paper grain */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+    opacity: .10; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0 0.05 0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* ═══ helpers ═══ */
+  .italic { font-style: italic; }
+  .mono   { font-family: "JetBrains Mono", monospace; }
+  .ink    { color: var(--ink); }
+  .smoke  { color: var(--smoke); }
+  .blood  { color: var(--blood); }
+  .ocean  { color: var(--ocean); }
+  .ochre  { color: var(--ochre); }
+  .moss   { color: var(--moss); }
+
+  /* ═══ slide shell ═══ */
+  .slide {
+    position: relative;
+    min-height: 100vh;
+    padding: 3.5vh 5.5vw;
+    scroll-snap-align: start;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 2vh;
+    border-bottom: 1px solid var(--rule);
+  }
+  .slide.alt  { background: var(--cream); }
+  .slide.dark { background: var(--ink); color: var(--bone); }
+  .slide.dark .head, .slide.dark .foot { color: rgba(244,241,234,.55); border-color: rgba(244,241,234,.18); }
+
+  /* soft department wash backgrounds */
+  .wash-blood  { background: var(--blood-wash); }
+  .wash-ocean  { background: var(--ocean-wash); }
+  .wash-ochre  { background: var(--ochre-wash); }
+  .wash-moss   { background: var(--moss-wash); }
+
+  .slide > * { position: relative; z-index: 1; }
+
+  /* ═══ head / foot rail ═══ */
+  .head, .foot {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--smoke);
+  }
+  .head { padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+  .foot { padding-top: 16px; border-top: 1px solid var(--rule); }
+  .slide.dark .head, .slide.dark .foot { border-color: rgba(244,241,234,.18); }
+
+  .head .left { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .head .num {
+    font-family: "Fraunces", Georgia, serif;
+    font-variation-settings: "opsz" 120, "SOFT" 100;
+    font-style: italic; font-weight: 500;
+    font-size: 26px; line-height: 1; color: var(--blood);
+  }
+  .head .tag {
+    padding: 4px 10px; border: 1px solid var(--blood);
+    color: var(--blood); font-size: 10px; letter-spacing: .22em;
+  }
+  .slide.dark .head .tag { border-color: var(--bone); color: var(--bone); }
+  .slide.dark .head .num { color: var(--monad-hi); }
+
+  /* ═══ body ═══ */
+  .body { padding: 4vh 0; display: grid; align-content: center; gap: 3.5vh; }
+
+  /* ═══ display typography — Fraunces ═══ */
+  .d1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-variation-settings: "opsz" 144, "SOFT" 50;
+    font-weight: 500;
+    font-size: clamp(52px, 8.5vw, 140px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+  }
+  .d2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-variation-settings: "opsz" 144, "SOFT" 60;
+    font-weight: 500;
+    font-size: clamp(38px, 5.8vw, 88px);
+    line-height: 1.05;
+    letter-spacing: -0.018em;
+  }
+  .d3 {
+    font-family: "Fraunces", Georgia, serif;
+    font-variation-settings: "opsz" 60;
+    font-weight: 500;
+    font-size: clamp(22px, 2.8vw, 36px);
+    line-height: 1.12;
+  }
+  .lede {
+    font-family: "Newsreader", Georgia, serif;
+    font-style: italic;
+    font-size: clamp(18px, 1.8vw, 26px);
+    line-height: 1.35;
+    color: var(--ink-soft);
+  }
+  .slide.dark .lede { color: rgba(244,241,234,.78); }
+
+  .eyebrow {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--smoke);
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--blood); }
+  .slide.dark .eyebrow { color: rgba(244,241,234,.55); }
+  .slide.dark .eyebrow::before { background: var(--monad-hi); }
+
+  /* soft italic accent for hero words */
+  .flair {
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+    color: var(--blood);
+  }
+  .slide.dark .flair { color: var(--monad-hi); }
+
+  /* ornaments */
+  .ornament {
+    font-family: "Fraunces", Georgia, serif;
+    font-style: italic;
+    color: var(--blood);
+  }
+
+  /* ═══ navigation ═══ */
+  nav.dots {
+    position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
+    z-index: 50; display: flex; flex-direction: column; gap: 10px;
+  }
+  nav.dots a {
+    width: 22px; height: 1px; background: var(--rule);
+    transition: all .25s ease; display: block;
+  }
+  nav.dots a.active { background: var(--blood); height: 2px; width: 42px; }
+  nav.dots a:hover  { background: var(--blood-hi); }
+
+  .progress {
+    position: fixed; top: 0; left: 0; height: 2px; background: var(--blood);
+    z-index: 200; width: 0%; transition: width .15s linear;
+  }
+
+  /* ═════════════════════════════════════════════════
+     01  COVER
+     ═════════════════════════════════════════════════ */
+  #s1 .body { display: grid; grid-template-columns: 1.4fr 1fr; gap: 5vw; align-items: center; }
+  #s1 .stamp {
+    display: inline-block;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: .22em;
+    color: var(--blood); border: 1px solid var(--blood);
+    padding: 5px 10px; transform: rotate(2deg);
+    margin-top: 22px;
+  }
+  #s1 .meta {
+    display: grid; gap: 18px;
+    border-left: 1px solid var(--rule);
+    padding: 10px 0 10px 22px;
+  }
+  #s1 .meta dl { display: grid; grid-template-columns: 11ch 1fr; gap: 10px 16px; }
+  #s1 .meta dt {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--smoke); padding-top: 6px;
+  }
+  #s1 .meta dd {
+    font-family: "Fraunces", serif; font-style: italic;
+    font-size: clamp(15px, 1.4vw, 19px);
+  }
+
+  /* ═════════════════════════════════════════════════
+     02  SMALL · OPEN · LOCAL (dark manifesto)
+     ═════════════════════════════════════════════════ */
+  #s-bet .manifesto {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid rgba(244,241,234,.2);
+    border-bottom: 1px solid rgba(244,241,234,.2);
+  }
+  #s-bet .word {
+    padding: 30px 22px;
+    border-right: 1px solid rgba(244,241,234,.14);
+    position: relative;
+  }
+  #s-bet .word:last-child { border-right: 0; }
+  #s-bet .word .num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; letter-spacing: .25em;
+    color: var(--monad-hi); margin-bottom: 16px;
+  }
+  #s-bet .word .big {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 500;
+    font-variation-settings: "opsz" 144, "SOFT" 60;
+    font-size: clamp(40px, 6.5vw, 96px);
+    line-height: 1.0; letter-spacing: -0.02em;
+  }
+  #s-bet .word:nth-child(3) .big {
+    font-style: italic; color: var(--monad-hi); font-weight: 400;
+  }
+  #s-bet .word .tag {
+    margin-top: 14px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: rgba(244,241,234,.6);
+  }
+  #s-bet .sub {
+    margin-top: 14px;
+    display: flex; gap: 34px; align-items: center; flex-wrap: wrap;
+  }
+  #s-bet .sub img { height: 22px; opacity: .85; }
+  #s-bet .sub .names {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    color: rgba(244,241,234,.6);
+  }
+
+  /* ═════════════════════════════════════════════════
+     03  PROBLEM (triptych with department accents)
+     ═════════════════════════════════════════════════ */
+  .triptych { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .tri-card {
+    background: var(--bone);
+    border: 1px solid var(--rule);
+    padding: 30px 26px;
+    display: grid; gap: 14px; align-content: start;
+    position: relative;
+    transition: transform .3s ease, border-color .3s ease;
+  }
+  .tri-card:hover { transform: translateY(-3px); }
+  .tri-card.a { border-top: 3px solid var(--blood); }
+  .tri-card.b { border-top: 3px solid var(--ocean); }
+  .tri-card.c { border-top: 3px solid var(--ochre); }
+  .tri-card .num {
+    font-family: "Fraunces", serif; font-style: italic; font-weight: 500;
+    font-variation-settings: "opsz" 144;
+    font-size: clamp(40px, 4.5vw, 58px); line-height: 1.0;
+  }
+  .tri-card.a .num { color: var(--blood); }
+  .tri-card.b .num { color: var(--ocean); }
+  .tri-card.c .num { color: var(--ochre); }
+  .tri-card .tag {
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--smoke);
+  }
+  .tri-card h3 {
+    font-family: "Fraunces", serif; font-weight: 500;
+    font-size: clamp(22px, 2.4vw, 30px); line-height: 1.1;
+    margin-top: 4px; letter-spacing: -0.01em;
+  }
+
+  /* ═════════════════════════════════════════════════
+     04  ANSWER — stat cards
+     ═════════════════════════════════════════════════ */
+  .stat-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  }
+  .stat-card {
+    background: var(--bone);
+    border: 1px solid var(--rule);
+    padding: 26px 24px;
+    display: grid; gap: 10px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card .l {
+    font-family: "JetBrains Mono", monospace; font-size: 11px;
+    letter-spacing: .22em; color: var(--smoke); text-transform: uppercase;
+  }
+  .stat-card .n {
+    font-family: "Fraunces", serif; font-weight: 500;
+    font-variation-settings: "opsz" 144, "SOFT" 40;
+    font-size: clamp(44px, 5.5vw, 80px); line-height: 1.02;
+    color: var(--ink); letter-spacing: -0.03em;
+  }
+  .stat-card .n .sm { font-size: 0.5em; font-style: italic; color: var(--blood); }
+  .stat-card .desc {
+    font-family: "Newsreader", serif;
+    font-size: 14px; line-height: 1.45; color: var(--ink-soft);
+    max-width: 30ch;
+  }
+
+  /* ═════════════════════════════════════════════════
+     05  ARCHITECTURE diagram
+     ═════════════════════════════════════════════════ */
+  .diagram {
+    background: var(--bone);
+    border: 1px solid var(--rule);
+    padding: 22px;
+    width: 100%; height: 100%; max-height: 68vh;
+    position: relative;
+  }
+  .diagram svg { width: 100%; height: 100%; }
+  .flow-line { stroke-dasharray: 6 4; animation: dash 1.8s linear infinite; }
+  @keyframes dash { to { stroke-dashoffset: -20; } }
+  .pulse { animation: pulse 2.2s ease-in-out infinite; transform-origin: center; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .72; }
+  }
+
+  /* ═════════════════════════════════════════════════
+     06  SIX LORAS
+     ═════════════════════════════════════════════════ */
+  .loras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .lora {
+    background: var(--bone);
+    border: 1px solid var(--rule);
+    padding: 22px 22px;
+    display: grid; gap: 10px; align-content: start;
+    position: relative; overflow: hidden;
+    transition: border-color .3s, transform .3s;
+  }
+  .lora:hover { transform: translateY(-2px); }
+  /* rotating department accent colors */
+  .lora:nth-child(1) { border-top: 3px solid var(--blood); }
+  .lora:nth-child(2) { border-top: 3px solid var(--ocean); }
+  .lora:nth-child(3) { border-top: 3px solid var(--ochre); }
+  .lora:nth-child(4) { border-top: 3px solid var(--moss); }
+  .lora:nth-child(5) { border-top: 3px solid var(--blood-hi); }
+  .lora:nth-child(6) { border-top: 3px solid var(--ocean-hi); }
+  .lora:nth-child(1) svg.ic { stroke: var(--blood); }
+  .lora:nth-child(2) svg.ic { stroke: var(--ocean); }
+  .lora:nth-child(3) svg.ic { stroke: var(--ochre); }
+  .lora:nth-child(4) svg.ic { stroke: var(--moss); }
+  .lora:nth-child(5) svg.ic { stroke: var(--blood-hi); }
+  .lora:nth-child(6) svg.ic { stroke: var(--ocean-hi); }
+  .lora svg.ic { width: 30px; height: 30px; fill: none; stroke-width: 1.4; }
+  .lora .nm {
+    font-family: "Fraunces", serif; font-weight: 500;
+    font-size: clamp(20px, 2vw, 26px); line-height: 1.05; letter-spacing: -0.015em;
+  }
+  .lora .hf {
+    font-family: "JetBrains Mono", monospace; font-size: 10px;
+    color: var(--smoke); letter-spacing: .02em; margin-top: 6px;
+    word-break: break-all;
+  }
+  .lora .idx {
+    position: absolute; top: 18px; right: 20px;
+    font-family: "Fraunces", serif; font-style: italic; font-size: 14px;
+    color: var(--smoke); letter-spacing: .1em;
+  }
+
+  /* ═════════════════════════════════════════════════
+     07  COMPARE (editorial table on dark)
+     ═════════════════════════════════════════════════ */
+  .cmp { width: 100%; border-collapse: collapse; }
+  .cmp th, .cmp td {
+    padding: 14px 14px; text-align: left;
+    border-bottom: 1px solid rgba(244,241,234,.14);
+  }
+  .cmp thead th {
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: rgba(244,241,234,.55); font-weight: 500;
+    border-bottom: 1px solid rgba(244,241,234,.28);
+  }
+  .cmp tbody th {
+    font-family: "Fraunces", serif; font-style: italic; font-weight: 500;
+    font-size: clamp(16px, 1.5vw, 20px);
+  }
+  .cmp td { text-align: center; font-size: clamp(18px, 1.8vw, 22px); font-family: "Fraunces", serif; font-style: italic; }
+  .cmp .yes { color: var(--moss-hi); }
+  .cmp .no  { color: var(--blood-hi); }
+  .cmp .mid { color: rgba(244,241,234,.35); }
+  .cmp tr.us th, .cmp tr.us td {
+    background: rgba(131,110,249,.10);
+    border-top: 1px solid var(--monad-hi);
+    border-bottom: 1px solid var(--monad-hi);
+  }
+  .cmp tr.us th { color: var(--monad-hi); }
+  .cmp tr.us .yes { color: var(--monad-hi); }
+
+  /* ═════════════════════════════════════════════════
+     08  ON-CHAIN SPLIT
+     ═════════════════════════════════════════════════ */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .split .col {
+    padding: 38px 34px;
+    border: 1px solid var(--rule);
+    background: var(--bone);
+  }
+  .split .col.neg { border-color: var(--blood); background: var(--blood-wash); }
+  .split .col.pos { border-color: var(--moss); background: var(--moss-wash); }
+  .split .label {
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px;
+    letter-spacing: .24em; text-transform: uppercase; margin-bottom: 28px;
+  }
+  .split .col.neg .label { color: var(--blood); }
+  .split .col.pos .label { color: var(--moss-hi); }
+  .split h3 {
+    font-family: "Fraunces", serif; font-weight: 500;
+    font-size: clamp(28px, 3.6vw, 48px); line-height: 1.05;
+    letter-spacing: -0.02em; margin-bottom: 30px;
+  }
+  .split .col.neg h3 { color: var(--blood); font-style: italic; }
+  .split .col.pos h3 { color: var(--moss-hi); font-style: italic; }
+  .split ul { list-style: none; display: grid; gap: 18px; }
+  .split li {
+    font-family: "Newsreader", serif;
+    font-size: clamp(15px, 1.4vw, 19px); line-height: 1.5;
+    padding-left: 26px; position: relative;
+    word-spacing: 0.12em;
+    letter-spacing: 0.012em;
+  }
+  .split li::before {
+    content: ""; position: absolute; left: 0; top: .65em;
+    width: 14px; height: 1px; background: currentColor; opacity: .55;
+  }
+
+  /* ═════════════════════════════════════════════════
+     09  NOVELTY / SCHEMA
+     ═════════════════════════════════════════════════ */
+  .novelty { display: grid; grid-template-columns: 1fr 1.15fr; gap: 46px; align-items: center; }
+  pre.schema {
+    background: var(--ink); color: var(--bone);
+    border: 1px solid var(--ink-soft);
+    padding: 24px 28px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: clamp(11px, 1vw, 13px); line-height: 1.75;
+    overflow: auto; border-radius: 2px;
+  }
+  pre.schema .k  { color: var(--monad-hi); }
+  pre.schema .c  { color: rgba(244,241,234,.45); font-style: italic; }
+  pre.schema .hl {
+    background: rgba(131,110,249,.16);
+    box-shadow: -3px 0 0 var(--monad);
+    padding-left: 8px; display: inline-block; width: calc(100% - 8px);
+  }
+
+  /* ═════════════════════════════════════════════════
+     10  MONAD (dark with violet emblem — brand retained)
+     ═════════════════════════════════════════════════ */
+  #s-monad .body { display: grid; grid-template-columns: 1.15fr 1fr; gap: 4vw; align-items: center; }
+  #s-monad .emblem-big {
+    width: clamp(80px, 10vw, 130px); height: clamp(80px, 10vw, 130px); display: block;
+  }
+  #s-monad .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 36px; }
+  #s-monad .stat .n {
+    font-family: "Fraunces", serif; font-weight: 500;
+    font-variation-settings: "opsz" 144, "SOFT" 40;
+    font-size: clamp(44px, 5.5vw, 84px); line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+  #s-monad .stat .n .sm { font-size: 0.5em; font-style: italic; color: var(--monad-hi); }
+  #s-monad .stat .l {
+    font-family: "JetBrains Mono", monospace; font-size: 11px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--monad-hi); margin-top: 10px;
+  }
+
+  /* ═════════════════════════════════════════════════
+     11  LOGO WALL
+     ═════════════════════════════════════════════════ */
+  .logowall {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px;
+    background: var(--rule); border: 1px solid var(--rule);
+  }
+  .logowall .cell {
+    background: var(--bone); aspect-ratio: 1/1;
+    display: grid; place-items: center; padding: 16px;
+    position: relative; transition: background .3s;
+  }
+  .logowall .cell:hover { background: var(--cream); }
+  .logowall .cell img {
+    max-width: 56%; max-height: 42px; object-fit: contain;
+    opacity: .85; transition: opacity .3s;
+  }
+  .logowall .cell:hover img { opacity: 1; }
+  .logowall .cell .nm {
+    position: absolute; bottom: 9px;
+    font-family: "JetBrains Mono", monospace; font-size: 9.5px;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--smoke);
+  }
+  .logowall .cell.wm .mk {
+    font-family: "Fraunces", serif; font-style: italic; font-weight: 500;
+    font-size: 24px; color: var(--ink);
+  }
+  .logowall .cell.wm .mk.v { color: var(--monad); }
+
+  /* ═════════════════════════════════════════════════
+     12  CLOSE (dark, big serif)
+     ═════════════════════════════════════════════════ */
+  #s-close .body { display: grid; grid-template-columns: 1.5fr 1fr; gap: 5vw; align-items: end; padding-bottom: 2vh; }
+  #s-close .ask {
+    border: 1px solid rgba(244,241,234,.25);
+    padding: 26px 28px;
+    background: rgba(244,241,234,.03);
+  }
+  #s-close dl { display: grid; grid-template-columns: 11ch 1fr; gap: 12px 16px; }
+  #s-close dt {
+    font-family: "JetBrains Mono", monospace; font-size: 10.5px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: rgba(244,241,234,.55); padding-top: 5px;
+  }
+  #s-close dd {
+    font-family: "Fraunces", serif; font-style: italic; font-weight: 500;
+    font-size: clamp(15px, 1.3vw, 18px);
+  }
+  #s-close dd a { color: var(--monad-hi); text-decoration: none; border-bottom: 1px solid var(--monad); }
+
+  /* ═══ reveal ═══ */
+  .rv { opacity: 0; transform: translateY(14px); transition: opacity .75s ease, transform .75s ease; }
+  .rv.in { opacity: 1; transform: translateY(0); }
+  .rv.d1 { transition-delay: .12s; }
+  .rv.d2 { transition-delay: .22s; }
+  .rv.d3 { transition-delay: .32s; }
+  .rv.d4 { transition-delay: .42s; }
+
+  /* ═══ responsive ═══ */
+  @media (max-width: 1100px) {
+    .slide { padding: 4vh 5vw; }
+    .triptych, .stat-row, .loras { grid-template-columns: 1fr; }
+    .split, .novelty, #s1 .body, #s-monad .body, #s-close .body { grid-template-columns: 1fr; gap: 30px; }
+    .logowall { grid-template-columns: repeat(3, 1fr); }
+    #s-bet .manifesto { grid-template-columns: 1fr; }
+    #s-bet .word { border-right: 0; border-bottom: 1px solid rgba(244,241,234,.14); padding: 24px 16px; }
+    nav.dots { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<nav class="dots" id="dots"></nav>
+
+
+<!-- ══════════════════════════ 01  COVER ══════════════════════════ -->
+<section class="slide" id="s1">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 01</span>
+      <span>Polyglot · Attest</span>
+      <span class="tag">INVESTOR BRIEF</span>
+    </div>
+    <div>Apr 2026</div>
+  </header>
+
+  <div class="body">
+    <div class="rv in">
+      <span class="eyebrow">Medical AI · On-chain Provenance</span>
+      <h1 class="d1" style="margin-top: 16px;">
+        Polyglot<br/>
+        <span class="flair">Attest.</span>
+      </h1>
+      <div class="stamp">SEED / THESIS</div>
+    </div>
+
+    <div class="meta rv d2">
+      <p class="lede">
+        Medical AI on one box.<br/>
+        Every inference on <span class="italic blood">Monad.</span>
+      </p>
+      <hr style="border:none;border-top:1px solid var(--rule);"/>
+      <dl>
+        <dt>Chain</dt>   <dd>Monad mainnet</dd>
+        <dt>Base</dt>    <dd>MedGemma · 4B</dd>
+        <dt>LoRAs</dt>   <dd>Six specialties</dd>
+        <dt>Hardware</dt><dd>One RTX 4090</dd>
+      </dl>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>Efe Çelik · CS Thesis · Ankara</span>
+    <span>01 / 12</span>
+  </footer>
+</section>
+
+
+<!-- ══════════════════════════ 02  SMALL · OPEN · LOCAL ══════════════════════════ -->
+<section class="slide dark" id="s-bet">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 02</span>
+      <span>Our bet</span>
+      <span class="tag">SLM-FIRST</span>
+    </div>
+    <div>Three-word manifesto</div>
+  </header>
+
+  <div class="body">
+    <div class="rv in">
+      <span class="eyebrow">NVIDIA · arXiv 2506.02153</span>
+      <div class="d3" style="margin-top: 14px; max-width: 38ch; font-style: italic; color: rgba(244,241,234,.85)">
+        “Small language models are the future of agentic AI.”
+      </div>
+    </div>
+
+    <div class="manifesto rv d1">
+      <div class="word">
+        <div class="num">I · SMALL</div>
+        <div class="big">≤ 10B</div>
+        <div class="tag">A specialist beats a generalist</div>
+      </div>
+      <div class="word">
+        <div class="num">II · OPEN</div>
+        <div class="big">Hashable</div>
+        <div class="tag">Weights pinned on-chain</div>
+      </div>
+      <div class="word">
+        <div class="num">III · LOCAL</div>
+        <div class="big">1 GPU</div>
+        <div class="tag">Zero PHI leaves the LAN</div>
+      </div>
+    </div>
+
+    <div class="sub rv d2">
+      <img src="https://cdn.simpleicons.org/huggingface/F4F1EA" alt="HuggingFace"/>
+      <img src="https://cdn.simpleicons.org/google/F4F1EA"      alt="Google"/>
+      <img src="https://cdn.simpleicons.org/nvidia/F4F1EA"      alt="NVIDIA"/>
+      <span class="names">MedGemma · DeepSeek R1 · Meerkat · Whisper v3</span>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Thesis · SLM-first</span><span>02 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 03  PROBLEM ══════════════════════════ -->
+<section class="slide" id="s-prob">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 03</span>
+      <span>The problem</span>
+      <span class="tag">CLOUD ≠ HOSPITAL</span>
+    </div>
+    <div>Three failures. One patient.</div>
+  </header>
+
+  <div class="body">
+    <h2 class="d2 rv in" style="max-width: 18ch;">
+      Cloud AI can’t<br/>
+      enter the <span class="flair">operating room.</span>
+    </h2>
+
+    <div class="triptych">
+      <article class="tri-card a rv d1">
+        <div class="num">i.</div>
+        <span class="tag">NETWORK</span>
+        <h3>No uplink.<br/>No AI.</h3>
+      </article>
+      <article class="tri-card b rv d2">
+        <div class="num">ii.</div>
+        <span class="tag">PRIVACY</span>
+        <h3>PHI can’t leave<br/>the LAN.</h3>
+      </article>
+      <article class="tri-card c rv d3">
+        <div class="num">iii.</div>
+        <span class="tag">TRUST</span>
+        <h3>Which model<br/>said this?</h3>
+      </article>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Problem</span><span>03 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 04  ANSWER ══════════════════════════ -->
+<section class="slide alt" id="s-ans">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 04</span>
+      <span>Our answer</span>
+      <span class="tag">ONE BOX</span>
+    </div>
+    <div>Six specialists · zero PHI</div>
+  </header>
+
+  <div class="body">
+    <h2 class="d2 rv in">
+      One <span class="flair">box.</span><br/>
+      Six specialists.<br/>
+      Zero PHI leaves.
+    </h2>
+
+    <div class="stat-row">
+      <div class="stat-card rv d1">
+        <div class="l">Ensemble</div>
+        <div class="n"><span data-count="6">6</span></div>
+        <div class="desc">LoRA adapters on MedGemma-4B. One router picks the right one.</div>
+      </div>
+      <div class="stat-card rv d2">
+        <div class="l">Memory</div>
+        <div class="n"><span data-count="20">20</span><span class="sm">GB</span></div>
+        <div class="desc">Full ensemble. Single RTX 4090.</div>
+      </div>
+      <div class="stat-card rv d3">
+        <div class="l">Finality</div>
+        <div class="n">&lt;<span data-count="1500">1500</span><span class="sm">ms</span></div>
+        <div class="desc">Click to verified attestation on Monad.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Solution</span><span>04 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 05  ARCHITECTURE ══════════════════════════ -->
+<section class="slide" id="s-arch">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 05</span>
+      <span>Architecture</span>
+      <span class="tag">ENSEMBLE</span>
+    </div>
+    <div>Voice → route → specialist → attest</div>
+  </header>
+
+  <div class="body">
+    <div class="diagram rv in">
+      <svg viewBox="0 0 800 440" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6E665B"/>
+          </marker>
+          <marker id="arv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#836EF9"/>
+          </marker>
+        </defs>
+
+        <g font-family="JetBrains Mono" font-size="10.5" letter-spacing="2.5" fill="#6E665B" text-anchor="middle">
+          <text x="90"  y="22">INPUT</text>
+          <text x="260" y="22">ROUTE</text>
+          <text x="430" y="22">SPECIALIST</text>
+          <text x="600" y="22">REASON · SYNTH</text>
+          <text x="740" y="22">CHAIN</text>
+        </g>
+
+        <g stroke="#C8BCA0" stroke-dasharray="1 5" opacity=".7">
+          <line x1="170" y1="36" x2="170" y2="420"/>
+          <line x1="345" y1="36" x2="345" y2="420"/>
+          <line x1="515" y1="36" x2="515" y2="420"/>
+          <line x1="680" y1="36" x2="680" y2="420"/>
+        </g>
+
+        <g font-family="JetBrains Mono" font-size="11" fill="#14110D">
+          <rect x="30" y="80"  width="130" height="44" fill="#F4F1EA" stroke="#14110D"/>
+          <text x="95" y="107" text-anchor="middle">Voice / Image</text>
+
+          <rect x="30" y="160" width="130" height="44" fill="#7A1F1F" stroke="#7A1F1F"/>
+          <text x="95" y="187" text-anchor="middle" fill="#F4F1EA">Pre-flight gates</text>
+
+          <rect x="205" y="80" width="130" height="44" fill="#F4F1EA" stroke="#14110D"/>
+          <text x="270" y="107" text-anchor="middle">Whisper-v3</text>
+
+          <rect x="205" y="160" width="130" height="44" fill="#1F4250" stroke="#1F4250"/>
+          <text x="270" y="187" text-anchor="middle" fill="#F4F1EA">ModernBERT</text>
+
+          <g>
+            <rect x="375" y="70"  width="140" height="24" fill="#F4F1EA" stroke="#7A1F1F" stroke-opacity=".5"/>
+            <text x="445" y="86" text-anchor="middle">Chest X-ray</text>
+            <rect x="375" y="98"  width="140" height="24" fill="#F4F1EA" stroke="#1F4250" stroke-opacity=".5"/>
+            <text x="445" y="114" text-anchor="middle">Brain MRI</text>
+            <rect x="375" y="126" width="140" height="24" fill="#F4F1EA" stroke="#9C7A2F" stroke-opacity=".5"/>
+            <text x="445" y="142" text-anchor="middle">Abdominal CT</text>
+            <rect x="375" y="154" width="140" height="24" fill="#F4F1EA" stroke="#4A5C3A" stroke-opacity=".5"/>
+            <text x="445" y="170" text-anchor="middle">Retinal OCT</text>
+            <rect x="375" y="182" width="140" height="24" fill="#F4F1EA" stroke="#962F2F" stroke-opacity=".5"/>
+            <text x="445" y="198" text-anchor="middle">Musculoskeletal</text>
+            <rect x="375" y="210" width="140" height="24" fill="#F4F1EA" stroke="#3B4F7C" stroke-opacity=".5"/>
+            <text x="445" y="226" text-anchor="middle">Dermatology</text>
+          </g>
+
+          <rect x="375" y="252" width="140" height="40" fill="#14110D" stroke="#14110D"/>
+          <text x="445" y="270" text-anchor="middle" fill="#F4F1EA" font-weight="600">MedGemma-4B</text>
+          <text x="445" y="283" text-anchor="middle" fill="#ECE7DB" font-size="9">shared base</text>
+
+          <rect x="545" y="110" width="130" height="44" fill="#F4F1EA" stroke="#14110D"/>
+          <text x="610" y="137" text-anchor="middle">DeepSeek-R1</text>
+
+          <rect x="545" y="175" width="130" height="44" fill="#F4F1EA" stroke="#14110D"/>
+          <text x="610" y="202" text-anchor="middle">Meerkat-7B</text>
+
+          <rect x="705" y="110" width="80" height="108" fill="#836EF9" stroke="#CBBFFF" class="pulse"/>
+          <text x="745" y="152" text-anchor="middle" fill="#14110D" font-weight="700">MONAD</text>
+          <text x="745" y="172" text-anchor="middle" fill="#14110D" font-size="9">attest()</text>
+          <text x="745" y="198" text-anchor="middle" fill="#14110D" font-size="9">&lt; 1.5 s</text>
+        </g>
+
+        <g fill="none" stroke="#6E665B" stroke-width="1.2" marker-end="url(#ar)">
+          <path d="M160 102 L205 102" class="flow-line"/>
+          <path d="M160 182 L205 182" class="flow-line"/>
+          <path d="M270 124 L270 158"/>
+          <path d="M335 182 L375 148"/>
+          <path d="M445 234 L445 252"/>
+          <path d="M515 280 L545 200"/>
+          <path d="M610 155 L610 173"/>
+        </g>
+        <g fill="none" stroke="#836EF9" stroke-width="1.6" marker-end="url(#arv)">
+          <path d="M675 197 L705 160" class="flow-line"/>
+        </g>
+
+        <g font-family="JetBrains Mono" font-size="10" fill="#6E665B">
+          <text x="30" y="400">hashes collected →</text>
+          <text x="30" y="418" fill="#14110D">keccak( router | base | lora | reason | agg | input | output | consent | doctor )</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <footer class="foot"><span>System</span><span>05 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 06  SIX LORAS ══════════════════════════ -->
+<section class="slide alt" id="s-loras">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 06</span>
+      <span>Six LoRAs · already shipped</span>
+      <span class="tag">FEB 2026</span>
+    </div>
+    <div>huggingface.co / efecelik</div>
+  </header>
+
+  <div class="body">
+    <h2 class="d2 rv in" style="max-width:24ch;">
+      Six specialists. <span class="flair">Already live.</span>
+    </h2>
+
+    <div class="loras">
+      <div class="lora rv d1">
+        <span class="idx">i.</span>
+        <svg class="ic" viewBox="0 0 24 24"><path d="M5 20V10a7 7 0 0 1 14 0v10"/><path d="M5 20h14"/><path d="M9 12v3M12 10v6M15 12v3"/></svg>
+        <div class="nm">Chest X-ray</div>
+        <div class="hf">medgemma-chest-xray-lora</div>
+      </div>
+      <div class="lora rv d1">
+        <span class="idx">ii.</span>
+        <svg class="ic" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v1a4 4 0 0 0-2 7v1a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-1a4 4 0 0 0-2-7V9a6 6 0 0 0-6-6z"/><path d="M12 8v12"/></svg>
+        <div class="nm">Brain MRI</div>
+        <div class="hf">medgemma-brain-mri-lora</div>
+      </div>
+      <div class="lora rv d2">
+        <span class="idx">iii.</span>
+        <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M7 10h10M7 14h6"/></svg>
+        <div class="nm">Abdominal CT</div>
+        <div class="hf">medgemma-abdominal-ct-lora</div>
+      </div>
+      <div class="lora rv d2">
+        <span class="idx">iv.</span>
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+        <div class="nm">Retinal OCT</div>
+        <div class="hf">medgemma-retinal-oct-lora</div>
+      </div>
+      <div class="lora rv d3">
+        <span class="idx">v.</span>
+        <svg class="ic" viewBox="0 0 24 24"><path d="M6 21V5a3 3 0 0 1 6 0v16M12 21V8a3 3 0 0 1 6 0v13"/></svg>
+        <div class="nm">Musculoskeletal</div>
+        <div class="hf">medgemma-musculoskeletal-lora</div>
+      </div>
+      <div class="lora rv d3">
+        <span class="idx">vi.</span>
+        <svg class="ic" viewBox="0 0 24 24"><path d="M4 12c2-4 6-6 8-6s4 2 4 4-2 3-4 3-4 1-4 3 2 4 4 4 6-2 8-6"/></svg>
+        <div class="nm">Dermatology</div>
+        <div class="hf">medgemma-dermatology-lora</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Traction</span><span>06 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 07  COMPARE ══════════════════════════ -->
+<section class="slide dark" id="s-cmp">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 07</span>
+      <span>Why small &amp; local</span>
+      <span class="tag">FIVE-COL TEST</span>
+    </div>
+    <div>One row lights every column</div>
+  </header>
+
+  <div class="body">
+    <h2 class="d2 rv in" style="max-width: 22ch; color: var(--bone);">
+      The <span class="flair">only row</span> that<br/>
+      lights every column.
+    </h2>
+
+    <table class="cmp rv d1">
+      <thead>
+        <tr><th></th><th>Offline</th><th>Privacy</th><th>Specialist</th><th>Auditable</th><th>Capex</th></tr>
+      </thead>
+      <tbody>
+        <tr><th>Cloud GPT-4</th>
+          <td class="no">✕</td><td class="no">✕</td><td class="mid">○</td><td class="no">✕</td><td class="no">✕</td></tr>
+        <tr><th>On-prem 70B</th>
+          <td class="yes">✓</td><td class="yes">✓</td><td class="mid">○</td><td class="mid">○</td><td class="no">✕</td></tr>
+        <tr><th>Single medical SLM</th>
+          <td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="mid">○</td><td class="yes">✓</td></tr>
+        <tr class="us"><th>Polyglot · Attest</th>
+          <td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="foot"><span>SLM-first · NVIDIA thesis</span><span>07 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 08  ON-CHAIN SPLIT ══════════════════════════ -->
+<section class="slide" id="s-split">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 08</span>
+      <span>On-chain discipline</span>
+      <span class="tag">THREAT MODEL</span>
+    </div>
+    <div>Audit trail, not crypto cosplay</div>
+  </header>
+
+  <div class="body">
+    <h2 class="d2 rv in" style="max-width: 18ch;">
+      What we record.<br/>
+      What we <span class="flair">refuse.</span>
+    </h2>
+
+    <div class="split">
+      <div class="col neg rv d1">
+        <div class="label">⨯ NEVER ON-CHAIN</div>
+        <h3>Never.</h3>
+        <ul>
+          <li>No PHI. Ever.</li>
+          <li>No patient wallets.</li>
+          <li>No clinical decisions.</li>
+          <li>No chain dependency.</li>
+        </ul>
+      </div>
+      <div class="col pos rv d2">
+        <div class="label">§ ALWAYS ON-CHAIN</div>
+        <h3>Always.</h3>
+        <ul>
+          <li>Weight hashes.</li>
+          <li>Ensemble provenance.</li>
+          <li>Consent &amp; revocation.</li>
+          <li>Doctor licenses.</li>
+          <li>Drift canary.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Threat model</span><span>08 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 09  NOVELTY / SCHEMA ══════════════════════════ -->
+<section class="slide alt" id="s-novel">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 09</span>
+      <span>The novelty</span>
+      <span class="tag">INFERENCE ATTESTATION</span>
+    </div>
+    <div>Ensemble-aware, atomic</div>
+  </header>
+
+  <div class="body">
+    <div class="novelty">
+      <div class="rv in">
+        <span class="eyebrow">THESIS CORE</span>
+        <h2 class="d2" style="margin-top: 14px; font-size: clamp(38px, 5.5vw, 84px);">
+          LoRA-aware<br/>
+          ensemble<br/>
+          <span class="flair">attestation.</span>
+        </h2>
+        <p class="mono" style="margin-top: 22px; font-size: 11.5px; letter-spacing: .1em; color: var(--smoke); max-width: 40ch; line-height: 1.7; text-transform: uppercase;">
+          Single-model attestation is prior art.<br/>
+          <span style="color: var(--blood)">LoRA-aware ensemble attestation is not.</span>
+        </p>
+      </div>
+
+<pre class="schema rv d2"><span class="c">// InferenceAttestation.sol</span>
+<span class="k">struct</span> EnsembleAttestation {
+  <span class="k">bytes32</span> routerHash;
+  <span class="k">bytes32</span> baseHash;
+<span class="hl">  <span class="k">bytes32</span> activeLoraHash;   <span class="c">// ← enforced adapter</span></span>
+  <span class="k">bytes32</span> reasoningHash;
+  <span class="k">bytes32</span> aggregatorHash;
+  <span class="k">bytes32</span> inputHash;
+  <span class="k">bytes32</span> finalOutputHash;
+  <span class="k">bytes32</span> consentRef;
+  <span class="k">address</span> doctor;
+}
+
+<span class="c">require</span>(MODELS.isLoraOfBase(activeLoraHash, baseHash));</pre>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Novelty · Thesis core</span><span>09 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 10  MONAD ══════════════════════════ -->
+<section class="slide dark" id="s-monad">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 10</span>
+      <span>Why Monad</span>
+      <span class="tag">PARALLEL EVM · L1</span>
+    </div>
+    <div>Datacenter throughput</div>
+  </header>
+
+  <div class="body">
+    <div class="rv in">
+      <svg class="emblem-big" viewBox="0 0 60 60">
+        <defs><linearGradient id="mg3" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#CBBFFF"/><stop offset="1" stop-color="#836EF9"/></linearGradient></defs>
+        <path d="M30 3 C 48 12, 57 30, 30 57 C 3 30, 12 12, 30 3 Z" fill="none" stroke="url(#mg3)" stroke-width="2"/>
+        <path d="M30 12 C 42 18, 48 30, 30 48 C 12 30, 18 18, 30 12 Z" fill="url(#mg3)" opacity=".9"/>
+      </svg>
+      <h2 class="d2" style="margin-top: 24px; color: var(--bone);">
+        Fast. Cheap.<br/>
+        <span class="flair">EVM.</span>
+      </h2>
+    </div>
+
+    <div class="stats">
+      <div class="stat rv d1">
+        <div class="n"><span data-count="10000">10K</span></div>
+        <div class="l">Target TPS</div>
+      </div>
+      <div class="stat rv d2">
+        <div class="n">0.8<span class="sm">s</span></div>
+        <div class="l">Finality</div>
+      </div>
+      <div class="stat rv d3">
+        <div class="n">&lt;¢</div>
+        <div class="l">Per attestation</div>
+      </div>
+      <div class="stat rv d4">
+        <div class="n">100<span class="sm">%</span></div>
+        <div class="l">EVM compatibility</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Chain</span><span>10 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 11  LOGO WALL ══════════════════════════ -->
+<section class="slide" id="s-logos">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 11</span>
+      <span>Stack</span>
+      <span class="tag">OPEN · PINNABLE</span>
+    </div>
+    <div>Every layer auditable</div>
+  </header>
+
+  <div class="body">
+    <h2 class="d2 rv in" style="max-width: 26ch;">
+      Every layer <span class="flair">open.</span>
+    </h2>
+
+    <div class="logowall rv d1">
+      <div class="cell"><img alt="Google"      src="https://cdn.simpleicons.org/google/14110D"/><span class="nm">MedGemma</span></div>
+      <div class="cell"><img alt="HuggingFace" src="https://cdn.simpleicons.org/huggingface/14110D"/><span class="nm">HuggingFace</span></div>
+      <div class="cell"><img alt="NVIDIA"      src="https://cdn.simpleicons.org/nvidia/14110D"/><span class="nm">NVIDIA</span></div>
+      <div class="cell wm"><span class="mk">vLLM</span><span class="nm">Inference</span></div>
+      <div class="cell wm"><span class="mk">Meerkat</span><span class="nm">Aggregator</span></div>
+      <div class="cell wm"><span class="mk">DeepSeek</span><span class="nm">Reasoning</span></div>
+
+      <div class="cell"><img alt="Python"      src="https://cdn.simpleicons.org/python/14110D"/><span class="nm">Python</span></div>
+      <div class="cell"><img alt="FastAPI"     src="https://cdn.simpleicons.org/fastapi/14110D"/><span class="nm">FastAPI</span></div>
+      <div class="cell"><img alt="Solidity"    src="https://cdn.simpleicons.org/solidity/14110D"/><span class="nm">Solidity</span></div>
+      <div class="cell wm"><span class="mk">Foundry</span><span class="nm">Forge · Cast</span></div>
+      <div class="cell"><img alt="React"       src="https://cdn.simpleicons.org/react/14110D"/><span class="nm">React</span></div>
+      <div class="cell wm">
+        <svg width="46" height="34" viewBox="0 0 60 60">
+          <defs><linearGradient id="mg4" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#CBBFFF"/><stop offset="1" stop-color="#836EF9"/></linearGradient></defs>
+          <path d="M30 3 C 48 12, 57 30, 30 57 C 3 30, 12 12, 30 3 Z" fill="none" stroke="url(#mg4)" stroke-width="2"/>
+          <path d="M30 12 C 42 18, 48 30, 30 48 C 12 30, 18 18, 30 12 Z" fill="url(#mg4)" opacity=".9"/>
+        </svg>
+        <span class="nm">Monad</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot"><span>Stack</span><span>11 / 12</span></footer>
+</section>
+
+
+<!-- ══════════════════════════ 12  CLOSE ══════════════════════════ -->
+<section class="slide dark" id="s-close">
+  <header class="head">
+    <div class="left">
+      <span class="num">§ 12</span>
+      <span>Thanks</span>
+      <span class="tag">Q2 · 2026</span>
+    </div>
+    <div>MVP · June 2026</div>
+  </header>
+
+  <div class="body">
+    <div class="rv in">
+      <span class="eyebrow">THE ASK</span>
+      <h2 class="d1" style="margin-top: 14px; font-size: clamp(50px, 8vw, 128px); color: var(--bone);">
+        One box.<br/>
+        Six specialists.<br/>
+        <span class="flair">One ledger.</span>
+      </h2>
+    </div>
+
+    <div class="ask rv d1">
+      <span class="eyebrow" style="margin-bottom: 20px; display: flex;">CONTACT</span>
+      <dl>
+        <dt>Founder</dt><dd>Efe Çelik</dd>
+        <dt>Program</dt><dd>CS Thesis, final year</dd>
+        <dt>Assets</dt> <dd><a href="https://huggingface.co/collections/efecelik/medvision-models" target="_blank" rel="noopener">huggingface.co / efecelik</a></dd>
+        <dt>Chain</dt>  <dd>Monad mainnet</dd>
+        <dt>Window</dt> <dd>Design partner / seed</dd>
+      </dl>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>Polyglot · Attest · v0.1</span>
+    <span>12 / 12</span>
+  </footer>
+</section>
+
+
+<script>
+  const slides = document.querySelectorAll('section.slide');
+  const nav = document.getElementById('dots');
+  slides.forEach((s, i) => {
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.title = `Slide ${i+1}`;
+    nav.appendChild(a);
+  });
+  const dots = nav.querySelectorAll('a');
+
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = (window.scrollY / max * 100) + '%';
+  }, { passive: true });
+
+  const counted = new WeakSet();
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      if (e.intersectionRatio > 0.4) {
+        const i = [...slides].indexOf(e.target);
+        if (i >= 0) {
+          dots.forEach(d => d.classList.remove('active'));
+          if (dots[i]) dots[i].classList.add('active');
+        }
+      }
+      e.target.querySelectorAll('.rv').forEach(el => el.classList.add('in'));
+
+      e.target.querySelectorAll('[data-count]').forEach(el => {
+        if (counted.has(el)) return;
+        counted.add(el);
+        const target = +el.dataset.count;
+        const dur = 1200;
+        const start = performance.now();
+        const initial = el.textContent;
+        (function tick(now) {
+          const p = Math.min(1, (now - start) / dur);
+          const e2 = 1 - Math.pow(1 - p, 3);
+          const v = Math.round(target * e2);
+          el.textContent = target >= 1000 ? (v >= 1000 ? (v/1000).toFixed(v<10000?1:0) + 'K' : v) : v;
+          if (p < 1) requestAnimationFrame(tick);
+          else el.textContent = initial;
+        })(start);
+      });
+    });
+  }, { threshold: [0.4] });
+  slides.forEach(s => io.observe(s));
+
+  let cur = 0;
+  function goTo(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides[cur].scrollIntoView({ behavior: 'smooth' });
+  }
+  window.addEventListener('keydown', (e) => {
+    if (['ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); goTo(cur + 1); }
+    if (['ArrowUp','PageUp'].includes(e.key))         { e.preventDefault(); goTo(cur - 1); }
+    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    if (e.key === 'End')  { e.preventDefault(); goTo(slides.length - 1); }
+  });
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY + window.innerHeight * 0.5;
+    slides.forEach((s, i) => {
+      if (s.offsetTop <= y && s.offsetTop + s.offsetHeight > y) cur = i;
+    });
+  }, { passive: true });
+</script>
+</body>
+</html>
