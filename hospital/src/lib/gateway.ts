@@ -8,7 +8,8 @@
 // (tx hashes, block numbers, contract addresses).
 
 export const GATEWAY_URL =
-  (import.meta.env.VITE_GATEWAY_URL as string | undefined) ?? "http://localhost:8000";
+  (import.meta.env.VITE_GATEWAY_URL as string | undefined) ??
+  (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 // Default demo identities — public info only; lives in the bootstrap manifest.
 export const DEMO_DOCTOR_ADDRESS =

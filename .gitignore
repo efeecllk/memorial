@@ -167,3 +167,4 @@ $RECYCLE.BIN/
 *.sqlite3
 *.db
 *.db-journal
+.vercel
