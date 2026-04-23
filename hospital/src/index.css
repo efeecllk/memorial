@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bone: #F4F1EA;
+  --cream: #ECE7DB;
+  --ink: #14110D;
+  --ink-soft: #423A2E;
+  --rule: #C8BCA0;
+  --rule-soft: #DDD3BB;
+  --blood: #7A1F1F;
+  --ocean: #1F4250;
+  --ochre: #9C7A2F;
+  --moss: #4A5C3A;
+  --smoke: #6E665B;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bone);
+  color: var(--ink);
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--bone);
+}
+
+/* Subtle grain — only over the body background, not interactive areas */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 17% 23%, rgba(20,17,13,0.02) 1px, transparent 1px),
+    radial-gradient(circle at 83% 71%, rgba(20,17,13,0.018) 1px, transparent 1px),
+    radial-gradient(circle at 41% 89%, rgba(20,17,13,0.015) 1px, transparent 1px);
+  background-size: 4px 4px, 6px 6px, 9px 9px;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: multiply;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+.font-display {
+  font-family: 'Fraunces', Georgia, serif;
+  font-feature-settings: 'liga' 1, 'dlig' 1, 'salt' 1;
+  font-variation-settings: 'opsz' 144, 'SOFT' 0, 'WONK' 0;
+}
+
+.font-display-soft {
+  font-family: 'Fraunces', Georgia, serif;
+  font-variation-settings: 'opsz' 144, 'SOFT' 100, 'WONK' 0;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-feature-settings: 'zero' 1, 'ss01' 1;
+}
+
+.smallcaps {
+  font-variant: all-small-caps;
+  letter-spacing: 0.10em;
+  font-weight: 500;
+}
+
+.italic-serif {
+  font-style: italic;
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--smoke); }
+
+/* Tabular numbers for data */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Editorial rule */
+.rule-thick {
+  border-bottom: 2px solid var(--ink);
+}
+
+.rule-thin {
+  border-bottom: 1px solid var(--rule);
+}
+
+.rule-double {
+  border-top: 1px solid var(--ink);
+  border-bottom: 4px double var(--ink);
+}
+
+/* Subtle pulse for critical signals */
+@keyframes ember {
+  0%, 100% { background-color: rgba(122, 31, 31, 0.08); }
+  50% { background-color: rgba(122, 31, 31, 0.16); }
+}
+
+.pulse-blood {
+  animation: ember 2.4s ease-in-out infinite;
+}
+
+/* Diagonal hatching for placeholder image regions */
+.hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--rule-soft),
+    var(--rule-soft) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+/* Footnote-style superscript */
+.footnote {
+  font-size: 0.65em;
+  vertical-align: super;
+  font-feature-settings: 'sups' 1;
+  color: var(--ochre);
+  margin-left: 0.15em;
+}
+
+/* Editorial dropcap helper */
+.dropcap::first-letter {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 800;
+  font-size: 3.6em;
+  float: left;
+  line-height: 0.85;
+  margin: 0.06em 0.08em 0 -0.04em;
+  color: var(--blood);
+}
